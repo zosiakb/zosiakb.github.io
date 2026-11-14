@@ -115,7 +115,7 @@ for (let i = 0; i < 5; i++) {
 }
 LINES.push([0,6,12,18,24], [4,8,12,16,20]);    // diagonals
 
-let card, cardId, editing = false, saveTimer;
+let card, cardId, editing = false, buttonsDown = false, saveTimer;
 
 // ---------- Theme (remembered per browser) ----------
 function setTheme(t) {
@@ -131,7 +131,7 @@ document.querySelectorAll(".swatch").forEach(b => b.onclick = () => setTheme(b.d
 // ---------- Card ----------
 function blank() {
   const cells = Array.from({length: 25}, () => ({text: "", done: false}));
-  cells[12] = {text: "One step at a time!", done: true};
+  cells[12] = {text: "FREE", done: true};
   return {title: TITLES[0], cells};
 }
 const newId = () => crypto.randomUUID().replace(/-/g, "").slice(0, 16);
@@ -172,9 +172,9 @@ function save() {
 function render() {
   $("title").textContent = card.title;
   $("editBtn").textContent = editing ? "Done editing" : "Edit";
-  // Buttons sit on top while editing, below the card otherwise
-  if (editing) $("msg").before($("controls"));
-  else $("status").before($("controls"));
+  // Buttons start on top; they move below the card only after "Done editing" is clicked
+  if (buttonsDown) $("status").before($("controls"));
+  else $("msg").before($("controls"));
   const won = LINES.filter(l => l.every(i => card.cells[i].done));
   const bingoCells = new Set(won.flat());
   $("msg").textContent = won.length ? `BINGO${won.length > 1 ? " ×" + won.length : ""}!` : "";
@@ -206,9 +206,9 @@ function toggleTitle() {
 $("title").onclick = toggleTitle;
 $("title").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTitle(); } };
 
-$("editBtn").onclick = () => { editing = !editing; render(); };
+$("editBtn").onclick = () => { editing = !editing; buttonsDown = !editing; render(); };
 $("newBtn").onclick = () => {
-  cardId = newId(); card = blank(); editing = true;
+  cardId = newId(); card = blank(); editing = true; buttonsDown = false;
   remember(cardId); render();
   $("status").textContent = "New card — your old one is still at its old link.";
 };

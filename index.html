@@ -38,7 +38,7 @@
   }
 
   #title {
-    font-size: 40px; font-weight: 700; text-align: center; margin: 10px 0;
+    font-size: 40px; font-weight: 700; text-align: center; margin: 10px 0 12px;
     color: var(--title); cursor: pointer; user-select: none;
     transition: color .2s, transform .2s;
   }
@@ -74,19 +74,19 @@
   .swatch.active { box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px var(--border); }
 
   #status { text-align: center; font-size: 16px; opacity: .6; word-break: break-all; color: var(--title); }
-  #msg { text-align: center; font-weight: 700; font-size: 30px; min-height: 40px; color: var(--title); }
+  #msg { text-align: center; font-weight: 700; font-size: 30px; margin-top: 8px; color: var(--title); }
 </style>
 </head>
 <body>
 <h1 id="title" tabindex="0" title="Click to switch"></h1>
 
+<div id="grid"></div>
+<div id="msg"></div>
 <div class="bar">
   <button id="editBtn"></button>
   <button id="newBtn">New card</button>
   <button id="copyBtn">My link</button>
 </div>
-<div id="msg"></div>
-<div id="grid"></div>
 <div class="bar">
   <button class="swatch" data-t="pink">Pink</button>
   <button class="swatch" data-t="blue">Blue</button>

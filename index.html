@@ -59,6 +59,7 @@
   }
   .cell.done  { background: var(--done); color: var(--done-text);
                 text-decoration: line-through; text-decoration-thickness: 3px; }
+  .cell.free  { text-decoration: none; }
   .cell.bingo { border-color: #FFB300; box-shadow: 0 0 10px #FFB300; }
   .cell textarea {
     width: 100%; height: 100%; border: none; resize: none; background: none;
@@ -130,7 +131,7 @@ document.querySelectorAll(".swatch").forEach(b => b.onclick = () => setTheme(b.d
 // ---------- Card ----------
 function blank() {
   const cells = Array.from({length: 25}, () => ({text: "", done: false}));
-  cells[12] = {text: "One step at a time :)", done: true};
+  cells[12] = {text: "FREE", done: true};
   return {title: TITLES[0], cells};
 }
 const newId = () => crypto.randomUUID().replace(/-/g, "").slice(0, 16);
@@ -182,7 +183,7 @@ function render() {
   grid.innerHTML = "";
   card.cells.forEach((c, i) => {
     const el = document.createElement("div");
-    el.className = "cell" + (c.done ? " done" : "") + (bingoCells.has(i) ? " bingo" : "");
+    el.className = "cell" + (c.done ? " done" : "") + (bingoCells.has(i) ? " bingo" : "") + (i === 12 ? " free" : "");
     if (editing) {
       const ta = document.createElement("textarea");
       ta.value = c.text;

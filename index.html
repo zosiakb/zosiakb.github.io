@@ -131,7 +131,7 @@ document.querySelectorAll(".swatch").forEach(b => b.onclick = () => setTheme(b.d
 // ---------- Card ----------
 function blank() {
   const cells = Array.from({length: 25}, () => ({text: "", done: false}));
-  cells[12] = {text: "FREE", done: true};
+  cells[12] = {text: "One step at a time!", done: true};
   return {title: TITLES[0], cells};
 }
 const newId = () => crypto.randomUUID().replace(/-/g, "").slice(0, 16);

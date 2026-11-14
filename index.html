@@ -3,28 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Resolution Bingo</title>
+<title>Bingo</title>
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/redaction-50@5/400.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/redaction-50@5/700.css" rel="stylesheet">
 <style>
-  body{font-family:system-ui,sans-serif;max-width:560px;margin:20px auto;padding:0 12px;color:#222}
-  #title{font:bold 26px system-ui;border:none;width:100%;text-align:center;background:none}
-  #grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-  .cell{aspect-ratio:1;border:2px solid #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;
-        text-align:center;font-size:13px;padding:4px;cursor:pointer;user-select:none;overflow:hidden;word-break:break-word}
-  .cell.done{background:#c8f7c5;border-color:#4caf50}
-  .cell.bingo{background:#ffe082;border-color:#ffb300}
-  .cell textarea{width:100%;height:100%;border:none;resize:none;font:inherit;text-align:center;background:none}
-  .bar{display:flex;gap:8px;justify-content:center;margin:12px 0;flex-wrap:wrap}
-  button{padding:6px 12px;border-radius:6px;border:1px solid #aaa;background:#fff;cursor:pointer}
-  #status{text-align:center;font-size:12px;color:#888;word-break:break-all}
-  #msg{text-align:center;font-weight:bold;font-size:20px;min-height:28px}
+  /* ---------- Themes ---------- */
+  body, .swatch[data-t="pink"] {
+    --bg: #FFF0F3;
+    --cell: #F67987;      --border: #C93D55;   --text: #3D0B17;
+    --done: #C93D55;      --done-text: #FFFFFF;
+    --title: #C93D55;     --title-hover: #F67987;
+  }
+  body[data-theme="blue"], .swatch[data-t="blue"] {
+    --bg: #EDF7FD;
+    --cell: #008DD5;      --border: #7FCBF0;   --text: #FFFFFF;
+    --done: #005F8F;      --done-text: #FFFFFF;
+    --title: #008DD5;     --title-hover: #005F8F;
+  }
+  body[data-theme="black"], .swatch[data-t="black"] {
+    --bg: #FFFFFF;
+    --cell: #000000;      --border: #000000;   --text: #FFFFFF;
+    --done: #FFFFFF;      --done-text: #000000;
+    --title: #000000;     --title-hover: #555555;
+  }
+
+  /* ---------- Layout ---------- */
+  body {
+    font-family: "Redaction 50", Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    max-width: 560px; margin: 20px auto; padding: 0 12px;
+    transition: background .3s;
+  }
+
+  #title {
+    font-size: 40px; font-weight: 700; text-align: center; margin: 10px 0;
+    color: var(--title); cursor: pointer; user-select: none;
+    transition: color .2s, transform .2s;
+  }
+  #title:hover, #title:focus-visible { color: var(--title-hover); transform: scale(1.08); outline: none; }
+
+  #grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+
+  /* Cards: grid cells, buttons and theme swatches share this look */
+  .cell, button {
+    background: var(--cell); color: var(--text);
+    border: 4px solid var(--border);
+    font-family: inherit; font-weight: 700;
+    transition: transform .15s, background .2s;
+  }
+  .cell {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    text-align: center; font-size: 17px; padding: 4px; cursor: pointer;
+    user-select: none; overflow: hidden; word-break: break-word;
+  }
+  .cell.done  { background: var(--done); color: var(--done-text);
+                text-decoration: line-through; text-decoration-thickness: 3px; }
+  .cell.bingo { border-color: #FFB300; box-shadow: 0 0 10px #FFB300; }
+  .cell textarea {
+    width: 100%; height: 100%; border: none; resize: none; background: none;
+    font: inherit; color: inherit; text-align: center;
+  }
+  .cell textarea::placeholder { color: inherit; opacity: .5; }
+
+  .bar { display: flex; gap: 8px; justify-content: center; margin: 12px 0; flex-wrap: wrap; }
+  button { font-size: 20px; padding: 6px 16px; cursor: pointer; }
+  button:hover { transform: scale(1.05); }
+  .swatch.active { box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px var(--border); }
+
+  #status { text-align: center; font-size: 16px; opacity: .6; word-break: break-all; color: var(--title); }
+  #msg { text-align: center; font-weight: 700; font-size: 30px; min-height: 40px; color: var(--title); }
 </style>
 </head>
 <body>
-<input id="title">
-<div class="bar">
-  <button id="editBtn"></button>
-  <button id="newBtn">➕ New card</button>
-  <button id="copyBtn">🔗 My link</button>
+<h1 id="title" tabindex="0" title="Click to switch"></h1>
+
+<div id="controls">
+  <div class="bar">
+    <button class="swatch" data-t="pink">Pink</button>
+    <button class="swatch" data-t="blue">Blue</button>
+    <button class="swatch" data-t="black">Black</button>
+  </div>
+  <div class="bar">
+    <button id="editBtn"></button>
+    <button id="newBtn">New card</button>
+    <button id="copyBtn">My link</button>
+  </div>
 </div>
 <div id="msg"></div>
 <div id="grid"></div>
@@ -34,15 +98,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// Paste your Firebase web config here (Project settings → Your apps → Web app)
 const app = initializeApp({
-  apiKey: "PASTE",
-  authDomain: "PASTE",
-  projectId: "PASTE",
+  apiKey: "AIzaSyAMlwMCN_fOZcnbgyc_NYd_irPTsPsjtuk",
+  authDomain: "goals-and-bucket-list-bingo.firebaseapp.com",
+  projectId: "goals-and-bucket-list-bingo",
 });
 const db = getFirestore(app);
 
 const $ = id => document.getElementById(id);
+const TITLES = ["My goals bingo!", "My bucket list bingo!"];
 const LINES = [];
 for (let i = 0; i < 5; i++) {
   LINES.push([0,1,2,3,4].map(j => i*5 + j));   // rows
@@ -52,10 +116,22 @@ LINES.push([0,6,12,18,24], [4,8,12,16,20]);    // diagonals
 
 let card, cardId, editing = false, saveTimer;
 
+// ---------- Theme (remembered per browser) ----------
+function setTheme(t) {
+  document.body.dataset.theme = t;
+  document.querySelectorAll(".swatch").forEach(b => b.classList.toggle("active", b.dataset.t === t));
+  try { localStorage.setItem("bingoTheme", t); } catch {}
+}
+let savedTheme = "pink";
+try { savedTheme = localStorage.getItem("bingoTheme") || "pink"; } catch {}
+setTheme(savedTheme);
+document.querySelectorAll(".swatch").forEach(b => b.onclick = () => setTheme(b.dataset.t));
+
+// ---------- Card ----------
 function blank() {
   const cells = Array.from({length: 25}, () => ({text: "", done: false}));
-  cells[12] = {text: "FREE", done: true};
-  return {title: "My 2027 Bingo", cells};
+  cells[12] = {text: "One step at a time :)", done: true};
+  return {title: TITLES[0], cells};
 }
 const newId = () => crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 
@@ -74,6 +150,7 @@ async function load() {
   } else {
     cardId = newId(); card = blank(); editing = true;
   }
+  if (!TITLES.includes(card.title)) card.title = TITLES[0];
   remember(cardId);
   render();
 }
@@ -84,7 +161,7 @@ function save() {
   saveTimer = setTimeout(async () => {
     try {
       await setDoc(doc(db, "cards", cardId), {title: card.title, cells: card.cells});
-      $("status").textContent = "Saved ✓";
+      $("status").textContent = "Saved";
     } catch (e) {
       $("status").textContent = "Couldn't save: " + e.message;
     }
@@ -92,11 +169,14 @@ function save() {
 }
 
 function render() {
-  $("title").value = card.title;
-  $("editBtn").textContent = editing ? "✅ Done editing" : "✏️ Edit";
+  $("title").textContent = card.title;
+  $("editBtn").textContent = editing ? "Done editing" : "Edit";
+  // Buttons sit on top while editing, below the card otherwise
+  if (editing) $("msg").before($("controls"));
+  else $("status").before($("controls"));
   const won = LINES.filter(l => l.every(i => card.cells[i].done));
   const bingoCells = new Set(won.flat());
-  $("msg").textContent = won.length ? `🎉 BINGO${won.length > 1 ? " ×" + won.length : ""}!` : "";
+  $("msg").textContent = won.length ? `BINGO${won.length > 1 ? " ×" + won.length : ""}!` : "";
 
   const grid = $("grid");
   grid.innerHTML = "";
@@ -117,7 +197,14 @@ function render() {
   });
 }
 
-$("title").oninput = e => { card.title = e.target.value; save(); };
+function toggleTitle() {
+  card.title = card.title === TITLES[0] ? TITLES[1] : TITLES[0];
+  $("title").textContent = card.title;
+  save();
+}
+$("title").onclick = toggleTitle;
+$("title").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTitle(); } };
+
 $("editBtn").onclick = () => { editing = !editing; render(); };
 $("newBtn").onclick = () => {
   cardId = newId(); card = blank(); editing = true;

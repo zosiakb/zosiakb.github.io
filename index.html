@@ -79,20 +79,18 @@
 <body>
 <h1 id="title" tabindex="0" title="Click to switch"></h1>
 
-<div id="controls">
-  <div class="bar">
-    <button class="swatch" data-t="pink">Pink</button>
-    <button class="swatch" data-t="blue">Blue</button>
-    <button class="swatch" data-t="black">Black</button>
-  </div>
-  <div class="bar">
-    <button id="editBtn"></button>
-    <button id="newBtn">New card</button>
-    <button id="copyBtn">My link</button>
-  </div>
+<div class="bar">
+  <button id="editBtn"></button>
+  <button id="newBtn">New card</button>
+  <button id="copyBtn">My link</button>
 </div>
 <div id="msg"></div>
 <div id="grid"></div>
+<div class="bar">
+  <button class="swatch" data-t="pink">Pink</button>
+  <button class="swatch" data-t="blue">Blue</button>
+  <button class="swatch" data-t="black">Black</button>
+</div>
 <p id="status"></p>
 
 <script type="module">
@@ -115,7 +113,7 @@ for (let i = 0; i < 5; i++) {
 }
 LINES.push([0,6,12,18,24], [4,8,12,16,20]);    // diagonals
 
-let card, cardId, editing = false, buttonsDown = false, saveTimer;
+let card, cardId, editing = false, saveTimer;
 
 // ---------- Theme (remembered per browser) ----------
 function setTheme(t) {
@@ -171,11 +169,7 @@ function save() {
 
 function render() {
   $("title").textContent = card.title;
-  $("editBtn").textContent = editing ? "Done editing" : "Edit";
-  // Buttons start on top; they move below the card only after "Done editing" is clicked
-  if (buttonsDown) $("status").before($("controls"));
-  else $("msg").before($("controls"));
-  const won = LINES.filter(l => l.every(i => card.cells[i].done));
+  $("editBtn").textContent = editing ? "Done editing" : "Edit";  const won = LINES.filter(l => l.every(i => card.cells[i].done));
   const bingoCells = new Set(won.flat());
   $("msg").textContent = won.length ? `BINGO${won.length > 1 ? " ×" + won.length : ""}!` : "";
 
@@ -206,9 +200,9 @@ function toggleTitle() {
 $("title").onclick = toggleTitle;
 $("title").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTitle(); } };
 
-$("editBtn").onclick = () => { editing = !editing; buttonsDown = !editing; render(); };
+$("editBtn").onclick = () => { editing = !editing; render(); };
 $("newBtn").onclick = () => {
-  cardId = newId(); card = blank(); editing = true; buttonsDown = false;
+  cardId = newId(); card = blank(); editing = true;
   remember(cardId); render();
   $("status").textContent = "New card — your old one is still at its old link.";
 };
